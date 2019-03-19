@@ -101,6 +101,16 @@ copy_admin_cert_ca() {
   check_error
 }
 
+#The Peer TLS certs have expired in the v1.4.0 fabric-sdk-node repo so we need to regenerate them.
+regen_peer_tls_cert() {
+  ORG=$1
+  PEER_TLS=./crypto-config/peerOrganizations/${ORG}.example.com/peers/peer0.${ORG}.example.com/tls
+  ORG_CA=./crypto-config/peerOrganizations/${ORG}.example.com/ca
+  CA_KEY=$ORG_CA/$(basename $(find $ORG_CA -name "*_sk"))
+  openssl req -new -key $PEER_TLS/key.pem -out $PEER_TLS/req.pem -subj '/C=US/ST=North Carolina/O=Hyperledger/OU=client/CN=peer0.'${ORG}'.example.com' -days 3650
+  openssl x509 -req -days 3650 -in $PEER_TLS/req.pem -CA $ORG_CA/${ORG}.example.com-cert.pem -CAkey $CA_KEY -CAcreateserial -out $PEER_TLS/cert.pem
+}
+
 for org in 1 2; do
 
   genmsp peerOrganizations org${org}.example.com users Admin@
@@ -111,6 +121,8 @@ for org in 1 2; do
 
   copy_admin_cert_ca peerOrganizations org${org}.example.com
 
+  regen_peer_tls_cert org${org}
+
 done
 
 genmsp ordererOrganizations example.com users Admin@
@@ -118,5 +130,4 @@ copy_admin_cert_node ordererOrganizations example.com orderers orderer
 copy_admin_cert_ca ordererOrganizations example.com
 
 configtxgen -profile TwoOrgsOrdererGenesis -outputBlock twoorgs.genesis.block
-
 
