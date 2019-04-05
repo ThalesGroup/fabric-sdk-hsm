@@ -118,7 +118,7 @@ public class End2endHSMIT extends End2endIT {
             SampleUser admin = sampleHSMStore.getMember(TEST_ADMIN_NAME, orgName);
             if (!admin.isEnrolled()) {
                 Enrollment enrollment = ca.enroll(admin.getName(), "adminpw");
-                sampleHSMStore.setUserSampleHSMStoreEnrollment(admin, enrollment, false);
+                sampleHSMStore.setUserSampleHSMStoreEnrollment(admin, enrollment, true);
                 admin.setMspId(mspid);
             }
 
